@@ -24,8 +24,8 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'UserDashboardDefaultChild', // 给子路由一个独立的名称
-        component: () => import('@/views/UserDashboard.vue')
+        name: 'UserHome',
+        component: () => import('@/views/UserHome.vue')
       },
       {
         path: 'profile',
@@ -106,5 +106,4 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-// 导出路由实例
 export default router

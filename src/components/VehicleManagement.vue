@@ -2,7 +2,10 @@
   <div class="vehicle-management">
     <div class="header">
       <h2>车辆管理</h2>
-      <el-button type="primary" @click="handleExport">导出数据</el-button>
+      <div class="header-buttons">
+        <el-button type="success" @click="handleAdd">新增车辆</el-button>
+        <el-button type="primary" @click="handleExport">导出数据</el-button>
+      </div>
     </div>
 
     <el-table
@@ -46,6 +49,9 @@
         :rules="rules"
         label-width="100px"
       >
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username" />
+        </el-form-item>
         <el-form-item label="车牌号" prop="licensePlate">
           <el-input v-model="form.licensePlate" />
         </el-form-item>
@@ -63,13 +69,6 @@
         </el-form-item>
         <el-form-item label="VIN码" prop="vin">
           <el-input v-model="form.vin" />
-        </el-form-item>
-        <el-form-item label="最后维护时间" prop="lastMaintenanceDate">
-          <el-date-picker
-            v-model="form.lastMaintenanceDate"
-            type="datetime"
-            placeholder="选择日期时间"
-          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -89,7 +88,8 @@ import {
   getAllVehicles, 
   updateVehicle, 
   deleteVehicle,
-  exportVehicles 
+  exportVehicles,
+  addVehicle 
 } from '@/api/admin'
 
 const loading = ref(false)
@@ -99,17 +99,17 @@ const dialogType = ref('edit')
 const formRef = ref(null)
 
 const form = ref({
-  id: null,
+  username: '',
   licensePlate: '',
   brand: '',
   model: '',
   year: new Date().getFullYear(),
   color: '',
-  vin: '',
-  lastMaintenanceDate: null
+  vin: ''
 })
 
 const rules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   licensePlate: [{ required: true, message: '请输入车牌号', trigger: 'blur' }],
   brand: [{ required: true, message: '请输入品牌', trigger: 'blur' }],
   model: [{ required: true, message: '请输入型号', trigger: 'blur' }],
@@ -154,6 +154,21 @@ const handleDelete = async (row) => {
   }
 }
 
+// 处理新增
+const handleAdd = () => {
+  dialogType.value = 'add'
+  form.value = {
+    username: '',
+    licensePlate: '',
+    brand: '',
+    model: '',
+    year: new Date().getFullYear(),
+    color: '',
+    vin: ''
+  }
+  dialogVisible.value = true
+}
+
 // 处理提交
 const handleSubmit = async () => {
   if (!formRef.value) return
@@ -163,6 +178,9 @@ const handleSubmit = async () => {
     if (dialogType.value === 'edit') {
       await updateVehicle(form.value.id, form.value)
       ElMessage.success('更新成功')
+    } else if (dialogType.value === 'add') {
+      await addVehicle(form.value)
+      ElMessage.success('添加成功')
     }
     dialogVisible.value = false
     fetchVehicles()
@@ -209,6 +227,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
 }
 
 .dialog-footer {

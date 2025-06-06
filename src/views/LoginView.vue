@@ -117,7 +117,7 @@ const handleLogin = async () => {
 
     switch(formData.role) {
       case 'user':
-        router.push('/dashboard');
+        router.push('/user-dashboard');
         break;
       case 'worker':
         router.push('/worker/dashboard');

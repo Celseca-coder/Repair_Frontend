@@ -50,6 +50,10 @@ export const getAllVehicles = () => {
   return api.get('/api/admin/vehicles');
 };
 
+export const addVehicle = (vehicleData) => {
+  return api.post('/vehicles/addVehicles', vehicleData);
+};
+
 export const getVehicleById = (vehicleId) => {
   return api.get(`/api/admin/vehicles/${vehicleId}`);
 };

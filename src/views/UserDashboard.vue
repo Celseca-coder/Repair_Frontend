@@ -1,107 +1,223 @@
 <template>
   <div class="dashboard-container">
-    <el-container>
-      <el-aside width="200px">
-        <el-menu
-          :default-active="activeMenu"
-          class="dashboard-menu"
-          @select="handleMenuSelect"
-        >
-          <el-menu-item index="profile">
-            <el-icon><User /></el-icon>
-            <span>个人信息</span>
-          </el-menu-item>
-          <el-menu-item index="vehicles">
-            <el-icon><Van /></el-icon>
-            <span>我的车辆</span>
-          </el-menu-item>
-          <el-menu-item index="repair">
-            <el-icon><Tools /></el-icon>
-            <span>报修申请</span>
-          </el-menu-item>
-          <el-menu-item index="orders">
-            <el-icon><Document /></el-icon>
-            <span>工单记录</span>
-          </el-menu-item>
-        </el-menu>
-      </el-aside>
+    <!-- 侧边栏导航 -->
+    <el-menu
+      class="sidebar-menu"
+      :default-active="activeMenu"
+      router
+      :collapse="isCollapse"
+    >
+      <div class="logo-container">
+        <h2 class="title" v-if="!isCollapse">车辆维修系统</h2>
+      </div>
 
-      <el-main>
-        <div v-if="activeMenu === 'profile'">
-          <user-profile />
+      <el-menu-item index="/user-dashboard">
+        <el-icon><HomeFilled /></el-icon>
+        <template #title>首页</template>
+      </el-menu-item>
+
+      <el-menu-item index="/user-dashboard/profile">
+        <el-icon><User /></el-icon>
+        <template #title>个人资料</template>
+      </el-menu-item>
+
+      <el-menu-item index="/user-dashboard/vehicles">
+        <el-icon><Van /></el-icon>
+        <template #title>我的车辆</template>
+      </el-menu-item>
+
+      <el-menu-item index="/user-dashboard/repair">
+        <el-icon><Tools /></el-icon>
+        <template #title>维修申请</template>
+      </el-menu-item>
+
+      <el-menu-item index="/user-dashboard/orders">
+        <el-icon><List /></el-icon>
+        <template #title>维修订单</template>
+      </el-menu-item>
+    </el-menu>
+
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+      <!-- 顶部导航栏 -->
+      <div class="top-nav">
+        <el-button
+          type="text"
+          @click="toggleSidebar"
+          class="collapse-btn"
+        >
+          <el-icon>
+            <component :is="isCollapse ? 'Expand' : 'Fold'" />
+          </el-icon>
+        </el-button>
+
+        <div class="user-info">
+          <el-dropdown @command="handleCommand">
+            <span class="user-dropdown">
+              {{ username }}
+              <el-icon><ArrowDown /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
-        <div v-else-if="activeMenu === 'vehicles'">
-          <vehicle-list />
-        </div>
-        <div v-else-if="activeMenu === 'repair'">
-          <repair-form />
-        </div>
-        <div v-else-if="activeMenu === 'orders'">
-          <order-table :username="authStore.username" />
-        </div>
-      </el-main>
-    </el-container>
+      </div>
+
+      <!-- 路由视图 -->
+      <div class="content-wrapper">
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { User, Van, Tools, Document } from '@element-plus/icons-vue'
-import OrderTable from '@/components/OrderTable.vue'
-import RepairForm from '@/components/RepairForm.vue'
-import UserProfile from '@/components/UserProfile.vue'
-import VehicleList from '@/components/VehicleList.vue'
+import { ElMessageBox } from 'element-plus'
+import {
+  HomeFilled,
+  User,
+  Van,
+  Tools,
+  List,
+  Expand,
+  Fold,
+  ArrowDown
+} from '@element-plus/icons-vue'
 
-const route = useRoute()
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
-// 根据路由路径确定当前激活的菜单项
-const activeMenu = computed(() => {
-  const path = route.path
-  if (path.includes('/profile')) return 'profile'
-  if (path.includes('/vehicles')) return 'vehicles'
-  if (path.includes('/repair')) return 'repair'
-  if (path.includes('/orders')) return 'orders'
-  return 'profile' // 默认显示个人信息
-})
+// 侧边栏折叠状态
+const isCollapse = ref(false)
+const toggleSidebar = () => {
+  isCollapse.value = !isCollapse.value
+}
 
-const handleMenuSelect = (index) => {
-  router.push(`/dashboard/${index}`)
+// 当前激活的菜单项
+const activeMenu = computed(() => route.path)
+
+// 用户名
+const username = computed(() => authStore.username || '用户')
+
+// 处理下拉菜单命令
+const handleCommand = async (command) => {
+  if (command === 'profile') {
+    router.push('/user-dashboard/profile')
+  } else if (command === 'logout') {
+    try {
+      await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+      await authStore.logout()
+      router.push('/login')
+    } catch (error) {
+      if (error !== 'cancel') {
+        console.error('退出登录失败:', error)
+      }
+    }
+  }
 }
 </script>
 
 <style scoped>
 .dashboard-container {
+  display: flex;
   height: 100vh;
   background-color: #f5f7fa;
 }
 
-.el-aside {
-  background-color: #fff;
+.sidebar-menu {
+  height: 100%;
   border-right: solid 1px #e6e6e6;
-}
-
-.dashboard-menu {
-  border-right: none;
-}
-
-.el-main {
-  padding: 20px;
   background-color: #fff;
-  margin: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  transition: width 0.3s;
 }
 
-.el-menu-item {
+.sidebar-menu:not(.el-menu--collapse) {
+  width: 240px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  color: #303133;
+  text-align: center;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.top-nav {
+  height: 60px;
+  background-color: #fff;
+  border-bottom: 1px solid #e6e6e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.collapse-btn {
+  font-size: 20px;
+  padding: 0;
+}
+
+.user-info {
   display: flex;
   align-items: center;
 }
 
-.el-icon {
-  margin-right: 8px;
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #606266;
+}
+
+.user-dropdown .el-icon {
+  margin-left: 4px;
+}
+
+.content-wrapper {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* 过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

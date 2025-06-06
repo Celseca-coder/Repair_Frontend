@@ -1,12 +1,33 @@
 import api from './index';
+import { useAuthStore } from '../stores/auth';
+
+// 用户注册
 export const userRegister = (userData) => {
   return api.post('/users/register', userData);
 };
+
+// 用户登录
 export const userLogin = (credentials) => {
-  // TODO: 确认普通用户登录 API 的具体 URL 和请求/响应格式
   const params = new URLSearchParams();
   params.append('username', credentials.username);
   params.append('password', credentials.password);
   return api.post('/users/login', credentials);
+};
+
+// 用户注销
+export const userLogout = () => {
+  return api.get('/users/logout');
+};
+
+// 修改用户信息
+export const editUser = (userData) => {
+  return api.post('/users/editUser', userData);
+};
+
+// 获取用户维修订单
+export const getRecentOrders = (vehicleId) => {
+  return api.post('/repairs/getOrders', {
+    vehicleId: vehicleId || 0
+  });
 };
 
