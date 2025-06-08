@@ -12,6 +12,9 @@ export const useAuthStore = defineStore('auth', {
     role: localStorage.getItem('role') || null,
     token: localStorage.getItem('token') || null,
   }),
+  getters: {
+    username: (state) => state.user?.username || null,
+  },
   actions: {
         async login(credentials) {
             const { username, password, role } = credentials;
@@ -57,14 +60,22 @@ export const useAuthStore = defineStore('auth', {
                     else if (response.data.success === true && response.data.token) {
                         successFlag = true;
                         responseToken = response.data.token;
-                        responseUserObject = response.data.user || { username: username };
+                        // 确保用户对象包含用户名
+                        responseUserObject = {
+                            username: username,
+                            ...(response.data.user || {})
+                        };
                         responseMessage = response.data.message || '登录成功';
                     }
                     // 分支4: 处理另一种通用响应格式
                     else if (response.data.code === 200 && response.data.data && response.data.data.token) {
                         successFlag = true;
                         responseToken = response.data.data.token;
-                        responseUserObject = response.data.data.user || { username: username };
+                        // 确保用户对象包含用户名
+                        responseUserObject = {
+                            username: username,
+                            ...(response.data.data.user || {})
+                        };
                         responseMessage = response.data.message || '登录成功';
                     }
                     // 最终，如果格式都不对，但有 message，则使用它
@@ -77,7 +88,11 @@ export const useAuthStore = defineStore('auth', {
                     this.token = responseToken;
                     localStorage.setItem('token', responseToken);
 
-                    this.user = responseUserObject;
+                    // 确保用户对象包含必要的字段
+                    this.user = {
+                        username: username,
+                        ...responseUserObject
+                    };
                     this.role = role;
 
                     localStorage.setItem('user', JSON.stringify(this.user));

@@ -44,8 +44,8 @@ const routes = [
       },
       {
         path: 'orders',
-        name: 'OrderTable',
-        component: () => import('@/components/OrderTable.vue')
+        name: 'OrderHistory',
+        component: () => import('@/views/user-dashboard/OrderHistory.vue')
       }
     ]
   },

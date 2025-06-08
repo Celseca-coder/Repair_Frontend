@@ -47,15 +47,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 
 // 模拟数据
-const vehicles = ref([
-  { 
-    id: 1,
-    licensePlate: '沪A12345',
-    brand: '大众 帕萨特 2020款',
-    purchaseDate: '2020-05-01',
-    mileage: 25680
-  }
-])
+const vehicles = ref([])
 
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -102,5 +94,14 @@ const submitVehicle = () => {
 const deleteVehicle = (id) => {
   vehicles.value = vehicles.value.filter(v => v.id !== id)
   ElMessage.success('删除成功')
+}
+
+const fetchVehicles = async () => {
+  try {
+    const response = await getVehicles(authStore.username)
+    vehicles.value = response.data || []
+  } catch (error) {
+    ElMessage.error('获取车辆列表失败：' + (error.message || '未知错误'))
+  }
 }
 </script>

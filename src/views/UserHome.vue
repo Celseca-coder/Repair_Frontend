@@ -125,7 +125,7 @@ import { useAuthStore } from '@/stores/auth'
 import { Van, Tools, List } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { getRecentOrders } from '@/api/user'
-import { getUserVehicles } from '@/api/vehicle'
+import { getVehicles } from '@/api/vehicle'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -159,14 +159,17 @@ const recentOrders = ref([])
 // 获取用户车辆列表
 const fetchVehicles = async () => {
   try {
-    const response = await getUserVehicles()
+    if (!authStore.username) {
+      throw new Error('用户未登录');
+    }
+    const response = await getVehicles(authStore.username)
     vehicles.value = response.data || []
     if (vehicles.value.length > 0) {
       selectedVehicleId.value = vehicles.value[0].id
       fetchRecentOrders(selectedVehicleId.value)
     }
   } catch (error) {
-    ElMessage.error('获取车辆列表失败：' + error.message)
+    ElMessage.error('获取车辆列表失败：' + (error.message || '未知错误'))
   }
 }
 

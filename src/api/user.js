@@ -23,6 +23,9 @@ export const userLogout = () => {
 export const editUser = (userData) => {
   return api.post('/users/editUser', userData);
 };
+export const getUserInfo = () => {
+  return api.get('/users/info');
+};
 
 // 获取用户维修订单
 export const getRecentOrders = (vehicleId) => {

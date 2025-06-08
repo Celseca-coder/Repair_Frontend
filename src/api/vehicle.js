@@ -11,14 +11,6 @@ export const getVehicles = (username) => {
   return api.post('/vehicles/getVehicles', { username });
 };
 
-// 获取用户的车辆列表
-export const getUserVehicles = () => {
-  return api.get('/vehicles/getUserVehicles', {
-    params: {
-      username: useAuthStore().username
-    }
-  });
-};
 
 // 编辑车辆信息
 export const editVehicle = (vehicleData) => {

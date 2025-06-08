@@ -33,17 +33,7 @@ const authStore = useAuthStore()
 const activeTab = ref('pending')
 
 // 模拟数据
-const allOrders = ref([
-  {
-    id: 1,
-    orderNumber: 'WO-20230701-001',
-    status: 'pending',
-    vehicleInfo: '沪A12345（大众帕萨特）',
-    faultType: '发动机故障',
-    createdAt: '2023-07-01 14:30',
-    materials: []
-  }
-])
+const allOrders = ref([])
 
 const pendingOrders = computed(() => 
   allOrders.value.filter(o => o.status === 'pending')
