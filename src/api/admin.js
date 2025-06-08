@@ -96,4 +96,14 @@ export const exportOrders = () => {
   return api.get('/api/admin/export/orders', { responseType: 'blob' });
 };
 
+// 获取待处理维修请求
+export const getPendingRepairRequests = () => {
+  return api.get('/api/admin/repair-requests/pending');
+};
+
+// 将维修请求转换为订单
+export const convertRepairRequestToOrder = (requestId, orderData) => {
+  return api.post(`/api/admin/repair-requests/${requestId}/convert-to-order`, orderData);
+};
+
 // ... 其他管理员相关的 API 调用函数可以添加到这里 

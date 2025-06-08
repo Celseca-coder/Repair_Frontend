@@ -1,5 +1,5 @@
 <template>
-  <el-form :model="repairForm" label-width="120px">
+  <el-form :model="repairForm" label-width="120px" ref="repairFormRef">
     <el-form-item label="选择车辆" required>
       <el-select 
         v-model="repairForm.vehicleId" 
@@ -53,20 +53,24 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
+import { getVehicles } from '@/api/vehicle'
+import { addRepairRequest } from '@/api/repair'
 
 const authStore = useAuthStore()
+const vehicles = ref([])
 
-// 模拟车辆数据
-const vehicles = ref([
-  { 
-    id: 1,
-    licensePlate: '沪A12345',
-    brand: '大众 帕萨特 2020款'
+// 获取车辆列表
+const fetchVehicles = async () => {
+  try {
+    const response = await getVehicles(authStore.username)
+    vehicles.value = response.data || []
+  } catch (error) {
+    ElMessage.error('获取车辆列表失败：' + (error.message || '未知错误'))
   }
-])
+}
 
 const repairForm = reactive({
   userId: authStore.user.id,
@@ -76,14 +80,44 @@ const repairForm = reactive({
   urgency: 1
 })
 
-const submitRepair = () => {
-  // 调用API提交逻辑
-  ElMessage.success('报修申请已提交')
-  Object.assign(repairForm, {
-    vehicleId: null,
-    faultType: '',
-    description: '',
-    urgency: 1
-  })
+const repairFormRef = ref(null);
+const rules = reactive({
+  vehicleId: [{ required: true, message: '请选择车辆', trigger: 'change' }],
+  faultType: [{ required: true, message: '请选择故障类型', trigger: 'change' }],
+  description: [
+    { required: true, message: '请输入故障描述', trigger: 'blur' },
+    { min: 5, message: '描述至少5个字符', trigger: 'blur' }
+  ],
+});
+
+const submitRepair = async () => {
+  if (!repairFormRef.value) return;
+  
+  try {
+    await repairFormRef.value.validate();
+    
+    const payload = {
+      vehicleId: repairForm.vehicleId,
+      username: authStore.username,
+      description: repairForm.description
+    };
+    
+    await addRepairRequest(payload);
+    ElMessage.success('报修申请已提交');
+    
+    Object.assign(repairForm, {
+      vehicleId: null,
+      faultType: '',
+      description: '',
+      urgency: 1
+    });
+  } catch (error) {
+    ElMessage.error('提交失败：' + (error.response?.data || error.message || '未知错误'));
+    console.error(error);
+  }
 }
+
+onMounted(() => {
+  fetchVehicles()
+})
 </script>
