@@ -61,4 +61,26 @@ export const rejectOrder = (repairmanId, orderId) => {
   return api.post(`/api/repairman/${repairmanId}/orders/${orderId}/reject`);
 };
 
+/**
+ * 更新工单的维修结果
+ * @param {number} repairmanId - 维修人员ID
+ * @param {number} orderId - 工单ID
+ * @param {string} result - 维修结果（例如："finish"）
+ * @returns {Promise}
+ */
+export const updateRepairResult = (repairmanId, orderId, result) => {
+  return api.put(`/api/repairman/${repairmanId}/orders/${orderId}/result`, null, {
+    params: { result: result }
+  });
+};
+
+/**
+ * 获取维修人员的总收入
+ * @param {number} repairmanId - 维修人员ID
+ * @returns {Promise<number>} 返回维修人员的总收入
+ */
+export const getRepairmanIncome = (repairmanId) => {
+  return api.get(`/api/repairman/${repairmanId}/income`)
+}
+
 // ... 其他维修人员相关的 API 调用函数可以添加到这里 

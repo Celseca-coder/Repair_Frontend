@@ -17,6 +17,7 @@
           :username="authStore.username"
           :loading="loading"
           show-material
+          @complete="handleCompleteOrder"
         />
       </el-tab-pane>
       
@@ -32,7 +33,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import OrderTable from '@/components/OrderTable.vue'
 import WorkerStatistics from '@/components/WorkerStatistics.vue'
-import { getRepairmanHistory, acceptOrder, rejectOrder } from '@/api/repairman'
+import { getRepairmanHistory, acceptOrder, rejectOrder, updateRepairResult } from '@/api/repairman'
 import { ElMessage } from 'element-plus'
 
 const authStore = useAuthStore()
@@ -108,6 +109,17 @@ const handleReject = async (orderId) => {
   } catch (error) {
     console.error('拒绝工单失败:', error)
     ElMessage.error('拒绝工单失败')
+  }
+}
+
+const handleCompleteOrder = async (orderId) => {
+  try {
+    await updateRepairResult(authStore.user.id, orderId, 'COMPLETED')
+    ElMessage.success('工单已完成')
+    fetchRepairmanHistory() // 重新获取工单列表以更新UI
+  } catch (error) {
+    console.error('完成工单失败:', error)
+    ElMessage.error('完成工单失败')
   }
 }
 </script>

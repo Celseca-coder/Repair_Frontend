@@ -51,6 +51,13 @@
             size="small"
             @click="showRatingDialog(row)"
           >评价</el-button>
+          <template v-else-if="row.status === 'ACCEPTED'">
+            <el-button
+              type="success"
+              size="small"
+              @click="emit('complete', row.orderId)"
+            >完成</el-button>
+          </template>
           <el-button
             v-if="row.status === 'PENDING'"
             type="danger"
@@ -132,7 +139,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['accept', 'reject'])
+const emit = defineEmits(['accept', 'reject', 'complete'])
 
 const authStore = useAuthStore()
 const detailDialogVisible = ref(false)
