@@ -58,6 +58,13 @@
               @click="emit('complete', row.orderId)"
             >完成</el-button>
           </template>
+          <template v-if="['COMPLETED', 'ACCEPTED', 'IN_PROGRESS'].includes(row.status)">
+            <el-button
+              type="info"
+              size="small"
+              @click="showMaterialDialog(row)"
+            >记录材料</el-button>
+          </template>
           <el-button
             v-if="row.status === 'PENDING'"
             type="danger"
@@ -99,6 +106,14 @@
           <el-descriptions-item v-if="currentOrder.comment" label="评价内容" :span="2">
             {{ currentOrder.comment }}
           </el-descriptions-item>
+          <el-descriptions-item label="材料使用" :span="2">
+            <ul v-if="currentOrder.materialUsages && currentOrder.materialUsages.length">
+              <li v-for="material in currentOrder.materialUsages" :key="material.id">
+                {{ material.materialName }} x {{ material.quantity }} (单价: ¥{{ material.unitPrice?.toFixed(2) || '-' }}, 总价: ¥{{ material.totalPrice?.toFixed(2) || '-' }}) - {{ material.usageDescription }}
+              </li>
+            </ul>
+            <span v-else>暂无材料记录</span>
+          </el-descriptions-item>
         </el-descriptions>
       </template>
     </el-dialog>
@@ -110,6 +125,45 @@
       :order-id="currentOrder?.orderId"
       @rated="handleRated"
     />
+
+    <!-- 记录材料对话框 -->
+    <el-dialog
+      v-model="materialDialogVisible"
+      title="记录材料"
+      width="500px"
+      @close="resetMaterialForm"
+    >
+      <el-form 
+        ref="materialFormRef"
+        :model="materialForm"
+        :rules="materialFormRules"
+        label-width="100px"
+      >
+        <el-form-item label="材料名称" prop="materialName">
+          <el-input v-model="materialForm.materialName" />
+        </el-form-item>
+        <el-form-item label="数量" prop="quantity">
+          <el-input-number v-model="materialForm.quantity" :min="1" />
+        </el-form-item>
+        <el-form-item label="单价" prop="unitPrice">
+          <el-input-number v-model="materialForm.unitPrice" :min="0" :precision="2" />
+        </el-form-item>
+        <el-form-item label="使用描述" prop="usageDescription">
+          <el-input 
+            v-model="materialForm.usageDescription"
+            type="textarea"
+            :rows="3"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="materialDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleMaterialSubmit">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -139,19 +193,36 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['accept', 'reject', 'complete'])
+const emit = defineEmits(['accept', 'reject', 'complete', 'recordMaterial'])
 
 const authStore = useAuthStore()
 const detailDialogVisible = ref(false)
 const ratingDialogVisible = ref(false)
+const materialDialogVisible = ref(false)
 const currentOrder = ref(null)
+const materialFormRef = ref(null)
+const materialForm = ref({
+  repairOrderId: null,
+  materialName: '',
+  quantity: 1,
+  unitPrice: 0,
+  totalPrice: 0,
+  usageDescription: ''
+})
+
+const materialFormRules = {
+  materialName: [{ required: true, message: '请输入材料名称', trigger: 'blur' }],
+  quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }],
+  unitPrice: [{ required: true, message: '请输入单价', trigger: 'blur' }],
+}
 
 const getStatusType = (status) => {
   const types = {
     'PENDING': 'warning',
     'IN_PROGRESS': 'info',
     'COMPLETED': 'success',
-    'CANCELLED': 'danger'
+    'CANCELLED': 'danger',
+    'ACCEPTED': 'primary'
   }
   return types[status] || 'info'
 }
@@ -161,7 +232,8 @@ const getStatusText = (status) => {
     'PENDING': '待处理',
     'IN_PROGRESS': '维修中',
     'COMPLETED': '已完成',
-    'CANCELLED': '已取消'
+    'CANCELLED': '已取消',
+    'ACCEPTED': '已接受'
   }
   return texts[status] || status
 }
@@ -227,6 +299,37 @@ const cancelOrder = async (order) => {
     if (error !== 'cancel') {
       ElMessage.error('取消失败')
     }
+  }
+}
+
+const showMaterialDialog = (order) => {
+  currentOrder.value = order
+  materialForm.value.repairOrderId = order.orderId
+  materialDialogVisible.value = true
+}
+
+const resetMaterialForm = () => {
+  materialFormRef.value?.resetFields()
+  materialForm.value = {
+    repairOrderId: null,
+    materialName: '',
+    quantity: 1,
+    unitPrice: 0,
+    totalPrice: 0,
+    usageDescription: ''
+  }
+}
+
+const handleMaterialSubmit = async () => {
+  if (!materialFormRef.value) return
+  try {
+    await materialFormRef.value.validate()
+    materialForm.value.totalPrice = materialForm.value.quantity * materialForm.value.unitPrice
+    emit('recordMaterial', materialForm.value.repairOrderId, materialForm.value)
+    materialDialogVisible.value = false
+    resetMaterialForm()
+  } catch (error) {
+    ElMessage.error('请填写所有必填项。')
   }
 }
 

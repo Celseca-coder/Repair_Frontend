@@ -83,4 +83,14 @@ export const getRepairmanIncome = (repairmanId) => {
   return api.get(`/api/repairman/${repairmanId}/income`)
 }
 
+/**
+ * 记录工单的材料使用情况
+ * @param {number} orderId - 工单ID
+ * @param {object} materialData - 材料数据对象
+ * @returns {Promise}
+ */
+export const recordOrderMaterial = (orderId, materialData) => {
+  return api.post(`/api/repairman/orders/${orderId}/materials`, materialData)
+}
+
 // ... 其他维修人员相关的 API 调用函数可以添加到这里 
