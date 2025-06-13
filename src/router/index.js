@@ -53,7 +53,14 @@ const routes = [
     path: '/worker/dashboard',
     name: 'WorkerDashboard',
     component: () => import('@/views/WorkerDashboard.vue'),
-    meta: { requiresAuth: true, role: 'worker' }
+    meta: { requiresAuth: true, role: 'worker' },
+    children: [
+      {
+        path: '',
+        name: 'WorkerOrders',
+        component: () => import('@/views/worker/RepairmanOrdersView.vue')
+      }
+    ]
   },
   {
     path: '/admin/dashboard',

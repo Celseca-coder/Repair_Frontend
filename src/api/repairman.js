@@ -20,4 +20,45 @@ export const getCurrentRepairman = () => {
   return api.get('/api/repairman/current');
 };
 
+/**
+ * 获取维修人员的历史工单
+ * @param {number} repairmanId - 维修人员ID
+ * @returns {Promise} 返回维修人员的历史工单列表
+ */
+export const getRepairmanHistory = (repairmanId) => {
+  return api.get(`/api/repairman/${repairmanId}/history`);
+};
+
+// 接受工单
+export const acceptRepairOrder = (repairmanId, orderId) => {
+  return api.post(`/api/repairman/${repairmanId}/orders/${orderId}/accept`);
+};
+
+// 拒绝工单
+export const rejectRepairOrder = (repairmanId, orderId, reason) => {
+  return api.post(`/api/repairman/${repairmanId}/orders/${orderId}/reject`, {
+    reason: reason
+  });
+};
+
+/**
+ * 接受工单
+ * @param {number} repairmanId - 维修人员ID
+ * @param {number} orderId - 工单ID
+ * @returns {Promise} 
+ */
+export const acceptOrder = (repairmanId, orderId) => {
+  return api.post(`/api/repairman/${repairmanId}/orders/${orderId}/accept`);
+};
+
+/**
+ * 拒绝工单
+ * @param {number} repairmanId - 维修人员ID
+ * @param {number} orderId - 工单ID
+ * @returns {Promise} 
+ */
+export const rejectOrder = (repairmanId, orderId) => {
+  return api.post(`/api/repairman/${repairmanId}/orders/${orderId}/reject`);
+};
+
 // ... 其他维修人员相关的 API 调用函数可以添加到这里 

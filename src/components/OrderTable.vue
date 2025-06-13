@@ -33,14 +33,20 @@
             size="small" 
             @click="viewDetail(row)"
           >查看详情</el-button>
+          <template v-if="row.status === 'PENDING'">
+            <el-button
+              type="primary"
+              size="small"
+              @click="emit('accept', row.orderId)"
+            >接受</el-button>
+            <el-button
+              type="danger"
+              size="small"
+              @click="emit('reject', row.orderId)"
+            >拒绝</el-button>
+          </template>
           <el-button
-            v-if="row.status === 'PENDING'"
-            type="warning"
-            size="small"
-            @click="urgeOrder(row)"
-          >催单</el-button>
-          <el-button
-            v-if="row.status === 'COMPLETED' && !row.rating"
+            v-else-if="row.status === 'COMPLETED' && !row.rating"
             type="success"
             size="small"
             @click="showRatingDialog(row)"
@@ -111,12 +117,24 @@ const props = defineProps({
   username: {
     type: String,
     required: true
+  },
+  orders: {
+    type: Array,
+    default: () => []
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  showMaterial: {
+    type: Boolean,
+    default: false
   }
 })
 
+const emit = defineEmits(['accept', 'reject'])
+
 const authStore = useAuthStore()
-const loading = ref(false)
-const orders = ref([])
 const detailDialogVisible = ref(false)
 const ratingDialogVisible = ref(false)
 const currentOrder = ref(null)
@@ -144,24 +162,6 @@ const getStatusText = (status) => {
 const formatDate = (date) => {
   if (!date) return '-'
   return new Date(date).toLocaleString()
-}
-
-const fetchOrders = async () => {
-  try {
-    loading.value = true
-    const response = await axios.get(`/api/repairs/history?username=${props.username}`, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`
-      }
-    })
-    if (response.data.code === 200) {
-      orders.value = response.data.data
-    }
-  } catch (error) {
-    ElMessage.error('获取工单历史失败')
-  } finally {
-    loading.value = false
-  }
 }
 
 const viewDetail = (order) => {
@@ -197,7 +197,7 @@ const showRatingDialog = (order) => {
 }
 
 const handleRated = () => {
-  fetchOrders() // 重新获取工单列表
+  //   fetchOrders() // 重新获取工单列表 // 此处也应处理，或由父组件决定是否刷新
 }
 
 const cancelOrder = async (order) => {
@@ -214,7 +214,7 @@ const cancelOrder = async (order) => {
     })
     if (response.data.code === 200) {
       ElMessage.success('取消成功')
-      fetchOrders()
+      // fetchOrders()
     }
   } catch (error) {
     if (error !== 'cancel') {
@@ -224,7 +224,7 @@ const cancelOrder = async (order) => {
 }
 
 onMounted(() => {
-  fetchOrders()
+  // fetchOrders()
 })
 </script>
 
