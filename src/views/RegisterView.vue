@@ -73,9 +73,9 @@
             placeholder="请选择工种"
             class="full-width"
           >
-            <el-option label="漆工" value="painter" />
-            <el-option label="焊工" value="welder" />
-            <el-option label="机修" value="mechanic" />
+            <el-option label="漆工" value="PAINTER" />
+            <el-option label="焊工" value="WELDER" />
+            <el-option label="机修" value="MECHANIC" />
           </el-select>
         </el-form-item>
 
@@ -227,23 +227,32 @@ const handleRegister = async () => {
       postData = {
         username: formData.username,
         password: formData.password,
-        // 确保 workType 字段名和枚举值与后端 API 期望的一致
-        workType: formData.skill ? formData.skill.toUpperCase() : '', // 例如 PAINTER, WELDER, MECHANIC
+        workType: formData.skill, // 直接使用选项值，不需要转换
         hourlyRate: formData.hourlyRate,
-        status: 'IDLE' // 或其他默认状态
+        status: 'IDLE'
       };
       apiCall = repairmanRegister;
     }
 
     const response = await apiCall(postData);
 
-    // 根据您的实际 API 响应结构调整判断条件
-    // Mock API 直接返回 { success: boolean, message: string }
-    if (response && response.success) {
-      ElMessage.success(response.message || '注册成功');
-      router.push('/login'); // 注册成功后跳转到登录页
+    // 根据用户类型检查不同的响应格式
+    if (formData.userType === 'user') {
+      // 普通用户注册成功的响应格式
+      if (response.data && response.data.user && response.data.token) {
+        ElMessage.success('注册成功');
+        router.push('/login');
+      } else {
+        ElMessage.error(response.data?.message || '注册失败');
+      }
     } else {
-      ElMessage.error(response.message || '注册失败');
+      // 维修人员注册成功的响应格式
+      if (response.data && response.data.id && response.data.username) {
+        ElMessage.success('注册成功');
+        router.push('/login');
+      } else {
+        ElMessage.error(response.data?.message || '注册失败');
+      }
     }
   } catch (error) {
     if (error && Array.isArray(error.fields)) {
