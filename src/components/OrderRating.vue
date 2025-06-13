@@ -41,9 +41,9 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
+import { addReview } from '@/api/review'
 import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
@@ -92,27 +92,24 @@ const handleSubmit = async () => {
   await ratingFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        const response = await axios.post(`/api/repairs/${props.orderId}/rate`, {
-          username: authStore.username,
+        const reviewData = {
+          userId: authStore.user.id,
+          repairOrderId: props.orderId,
           rating: ratingForm.rating,
           comment: ratingForm.comment
-        }, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`
-          }
-        })
-        
-        if (response.data.code === 200) {
-          ElMessage.success('评价成功')
-          dialogVisible.value = false
-          emit('rated')
-          // 重置表单
-          ratingForm.rating = 5
-          ratingForm.comment = ''
         }
+        await addReview(reviewData)
+        
+        ElMessage.success('评价成功')
+        dialogVisible.value = false
+        emit('rated')
+        // 重置表单
+        ratingForm.rating = 5
+        ratingForm.comment = ''
       } catch (error) {
+        console.error('提交评价失败:', error)
         if (error.response?.data?.code === 400) {
-          ElMessage.error('该工单已经评价过了')
+          ElMessage.error(error.response.data.msg || '该工单已经评价过了')
         } else {
           ElMessage.error('评价失败')
         }

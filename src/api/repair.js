@@ -13,4 +13,18 @@ export const getRepairRequests = (username) => {
 // 获取维修订单列表
 export const getRepairOrders = (vehicleId) => {
   return api.post('/repairs/getOrders', { vehicleId });
-}; 
+};
+
+/**
+ * 用户催单
+ * @param {number} orderId - 订单ID
+ * @param {string} username - 用户名
+ * @param {string} remark - 备注
+ * @returns {Promise}
+ */
+export const urgeOrder = (orderId, username, remark) => {
+  return api.post(`/api/orders/${orderId}/urge`, {
+    username: username,
+    remark: remark
+  })
+} 

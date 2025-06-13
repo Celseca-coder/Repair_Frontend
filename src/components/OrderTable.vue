@@ -33,7 +33,7 @@
             size="small" 
             @click="viewDetail(row)"
           >查看详情</el-button>
-          <template v-if="row.status === 'PENDING'">
+          <template v-if="isRepairmanView && row.status === 'PENDING'">
             <el-button
               type="primary"
               size="small"
@@ -46,24 +46,32 @@
             >拒绝</el-button>
           </template>
           <el-button
-            v-else-if="row.status === 'COMPLETED' && !row.rating"
+            v-if="['COMPLETED', 'ACCEPTED'].includes(row.status) && !row.rating"
             type="success"
             size="small"
             @click="showRatingDialog(row)"
           >评价</el-button>
-          <template v-else-if="row.status === 'ACCEPTED'">
+          <template v-else-if="isRepairmanView && row.status === 'ACCEPTED'">
             <el-button
               type="success"
               size="small"
               @click="emit('complete', row.orderId)"
             >完成</el-button>
           </template>
-          <template v-if="['COMPLETED', 'ACCEPTED', 'IN_PROGRESS'].includes(row.status)">
+          <template v-if="isRepairmanView && ['COMPLETED', 'ACCEPTED', 'IN_PROGRESS'].includes(row.status)">
             <el-button
               type="info"
               size="small"
               @click="showMaterialDialog(row)"
             >记录材料</el-button>
+          </template>
+          <!-- 用户视图的催单按钮 -->
+          <template v-if="!isRepairmanView && row.status === 'ACCEPTED'">
+            <el-button
+              type="warning"
+              size="small"
+              @click="emit('urge', row.orderId)"
+            >催单</el-button>
           </template>
           <el-button
             v-if="row.status === 'PENDING'"
@@ -190,10 +198,14 @@ const props = defineProps({
   showMaterial: {
     type: Boolean,
     default: false
+  },
+  isRepairmanView: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['accept', 'reject', 'complete', 'recordMaterial'])
+const emit = defineEmits(['accept', 'reject', 'complete', 'recordMaterial', 'urge'])
 
 const authStore = useAuthStore()
 const detailDialogVisible = ref(false)

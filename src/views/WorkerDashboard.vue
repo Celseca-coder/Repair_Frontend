@@ -8,6 +8,7 @@
           :loading="loading"
           @accept="handleAccept"
           @reject="handleReject"
+          is-repairman-view
         />
       </el-tab-pane>
       
@@ -19,6 +20,7 @@
           show-material
           @complete="handleCompleteOrder"
           @recordMaterial="handleRecordMaterial"
+          is-repairman-view
         />
       </el-tab-pane>
       
