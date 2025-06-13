@@ -106,4 +106,12 @@ export const convertRepairRequestToOrder = (requestId, orderData) => {
   return api.post(`/api/admin/repair-requests/${requestId}/convert-to-order`, orderData);
 };
 
+/**
+ * 获取所有用户列表
+ * @returns {Promise<Array>}
+ */
+export const getUsers = () => {
+  return api.get('/api/admin/users');
+};
+
 // ... 其他管理员相关的 API 调用函数可以添加到这里 

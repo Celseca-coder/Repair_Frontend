@@ -74,6 +74,11 @@ const routes = [
         component: () => import('@/components/WorkerManagement.vue')
       },
       {
+        path: 'user',
+        name: 'UserManagement',
+        component: () => import('@/views/UserManagementView.vue')
+      },
+      {
         path: 'vehicles',
         name: 'VehicleManagement',
         component: () => import('@/components/VehicleManagement.vue')

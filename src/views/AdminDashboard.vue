@@ -11,6 +11,10 @@
             <el-icon><User /></el-icon>
             <span>维修人员管理</span>
           </el-menu-item>
+          <el-menu-item index="/admin/dashboard/user">
+            <el-icon><User /></el-icon>
+            <span>用户管理</span>
+          </el-menu-item>
           <el-menu-item index="/admin/dashboard/vehicles">
             <el-icon><Van /></el-icon>
             <span>车辆管理</span>
@@ -31,6 +35,7 @@
 
 <script setup>
 import { User, Van, Document } from '@element-plus/icons-vue'
+import UserManagementView from './UserManagementView.vue'
 </script>
 
 <style scoped>
