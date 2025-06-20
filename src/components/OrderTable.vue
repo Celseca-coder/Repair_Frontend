@@ -67,6 +67,14 @@
               @click="emit('urge', row.orderId)"
             >催单</el-button>
           </template>
+          <!-- 用户视图的评价按钮，仅在已完成且未评价时显示 -->
+          <template v-if="!isRepairmanView &&!row.rating">
+            <el-button
+              type="success"
+              size="small"
+              @click="showRatingDialog(row)"
+            >评价</el-button>
+          </template>
           <el-button
             v-if="row.status === 'PENDING'"
             type="danger"
