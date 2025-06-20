@@ -39,18 +39,12 @@
               size="small"
               @click="emit('accept', row.orderId)"
             >接受</el-button>
-            <el-button
+          <el-button
               type="danger"
-              size="small"
+            size="small"
               @click="emit('reject', row.orderId)"
             >拒绝</el-button>
           </template>
-          <el-button
-            v-if="['COMPLETED', 'ACCEPTED'].includes(row.status) && !row.rating"
-            type="success"
-            size="small"
-            @click="showRatingDialog(row)"
-          >评价</el-button>
           <template v-else-if="isRepairmanView && row.status === 'ACCEPTED'">
             <el-button
               type="success"

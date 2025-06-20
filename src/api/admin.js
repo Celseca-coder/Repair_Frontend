@@ -114,4 +114,19 @@ export const getUsers = () => {
   return api.get('/api/admin/users');
 };
 
+// 获取品牌维修统计
+export const getBrandRepairStatistics = () => {
+  return api.get('/api/admin/statistics/brand-repair');
+};
+
+// 获取工资发放时间
+export const getRepairmanSalaryTime = (id) => {
+  return api.get(`/api/admin/repairman/${id}/salary-time`);
+};
+
+// 设置工资发放时间
+export const setRepairmanSalaryTime = (id, paidTime) => {
+  return api.post(`/api/admin/repairman/${id}/salary-time`, { paidTime });
+};
+
 // ... 其他管理员相关的 API 调用函数可以添加到这里 

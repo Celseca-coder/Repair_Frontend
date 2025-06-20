@@ -24,6 +24,13 @@
           <el-tag :type="getStatusType(row.status)">{{ row.status?.description }}</el-tag>
         </template>
       </el-table-column>
+      <el-table-column label="工资发放时间" width="220">
+        <template #default="{ row }">
+          <span v-if="row.salaryTime">{{ row.salaryTime }}</span>
+          <span v-else style="color:#aaa">未设置</span>
+          <el-button type="text" size="small" @click="openSalaryTimeDialog(row)">编辑</el-button>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button-group>
@@ -74,6 +81,22 @@
         </span>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="salaryTimeDialogVisible" title="编辑工资发放时间" width="400px">
+      <el-date-picker
+        v-model="salaryTimeValue"
+        type="datetime"
+        value-format="YYYY-MM-DDTHH:mm:ss"
+        placeholder="请选择工资发放时间"
+        style="width: 100%"
+      />
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="salaryTimeDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveSalaryTime">保存</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -84,7 +107,9 @@ import {
   getAllRepairmen, 
   updateRepairman, 
   deleteRepairman,
-  exportRepairmen 
+  exportRepairmen,
+  getRepairmanSalaryTime,
+  setRepairmanSalaryTime
 } from '@/api/admin'
 
 const loading = ref(false)
@@ -92,6 +117,9 @@ const repairmen = ref([])
 const dialogVisible = ref(false)
 const dialogType = ref('edit')
 const formRef = ref(null)
+const salaryTimeDialogVisible = ref(false)
+const salaryTimeRow = ref(null)
+const salaryTimeValue = ref('')
 
 const form = ref({
   id: null,
@@ -113,7 +141,11 @@ const fetchRepairmen = async () => {
   try {
     loading.value = true
     const response = await getAllRepairmen()
-    repairmen.value = response.data
+    // 并发获取每个人的salaryTime
+    const list = response.data
+    const salaryTimes = await Promise.all(list.map(r => getRepairmanSalaryTime(r.id).then(res => res.data || '').catch(() => '')))
+    list.forEach((r, i) => { r.salaryTime = salaryTimes[i] })
+    repairmen.value = list
   } catch (error) {
     ElMessage.error('获取维修人员列表失败：' + error.message)
   } finally {
@@ -186,6 +218,21 @@ const getStatusType = (status) => {
     'INACTIVE': 'danger'
   }
   return types[status?.code] || 'info'
+}
+
+const openSalaryTimeDialog = async (row) => {
+  salaryTimeRow.value = row
+  // 获取最新工资发放时间
+  const res = await getRepairmanSalaryTime(row.id)
+  salaryTimeValue.value = res.data || ''
+  salaryTimeDialogVisible.value = true
+}
+
+const saveSalaryTime = async () => {
+  await setRepairmanSalaryTime(salaryTimeRow.value.id, salaryTimeValue.value)
+  ElMessage.success('工资发放时间已更新')
+  salaryTimeDialogVisible.value = false
+  fetchRepairmen()
 }
 
 onMounted(() => {

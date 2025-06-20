@@ -27,6 +27,10 @@
       <el-tab-pane label="工时统计" name="statistics">
         <WorkerStatistics :worker-id="authStore.user.id" />
       </el-tab-pane>
+      
+      <el-tab-pane label="个人信息" name="profile">
+        <RepairmanProfile />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -38,6 +42,7 @@ import OrderTable from '@/components/OrderTable.vue'
 import WorkerStatistics from '@/components/WorkerStatistics.vue'
 import { getRepairmanHistory, acceptOrder, rejectOrder, updateRepairResult, recordOrderMaterial } from '@/api/repairman'
 import { ElMessage } from 'element-plus'
+import RepairmanProfile from './worker/RepairmanProfile.vue'
 
 const authStore = useAuthStore()
 const activeTab = ref('pending')

@@ -1,5 +1,17 @@
 <template>
   <div class="order-management">
+    <div class="brand-statistics" v-if="brandStats && Object.keys(brandStats).length">
+      <el-card>
+        <template #header>品牌维修统计</template>
+        <el-table :data="brandStatsTable" size="small" style="width: 400px;">
+          <el-table-column prop="brand" label="品牌" width="120" />
+          <el-table-column prop="count" label="维修次数" width="100" />
+          <el-table-column prop="avgCost" label="平均费用" width="120">
+            <template #default="{ row }">¥{{ row.avgCost }}</template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+    </div>
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <el-tab-pane label="维修工单管理" name="orders">
         <div class="header">
@@ -193,7 +205,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   getAllRepairOrders, 
@@ -202,7 +214,8 @@ import {
   exportOrders,
   getAllRepairmen,
   getPendingRepairRequests,
-  convertRepairRequestToOrder
+  convertRepairRequestToOrder,
+  getBrandRepairStatistics
 } from '@/api/admin'
 
 const loading = ref(false)
@@ -247,6 +260,16 @@ const rules = {
 
 const convertRules = reactive({
   repairmanId: [{ required: true, message: '请选择维修人员', trigger: 'change' }],
+})
+
+const brandStats = ref(null)
+const brandStatsTable = computed(() => {
+  if (!brandStats.value) return []
+  return Object.entries(brandStats.value).map(([brand, stat]) => ({
+    brand,
+    count: stat.count,
+    avgCost: stat.avgCost
+  }))
 })
 
 // 获取工单列表
@@ -403,12 +426,22 @@ const formatDate = (date) => {
   return new Date(date).toLocaleString()
 }
 
+const fetchBrandStats = async () => {
+  try {
+    const res = await getBrandRepairStatistics()
+    brandStats.value = res.data
+  } catch (e) {
+    // 可选：ElMessage.error('获取品牌统计失败')
+  }
+}
+
 onMounted(() => {
   fetchOrders()
   fetchRepairmen()
   if (activeTab.value === 'pendingRequests') {
     fetchPendingRequests()
   }
+  fetchBrandStats()
 })
 </script>
 
