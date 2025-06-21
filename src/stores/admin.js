@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { getAllUsers, updateUser, deleteUser } from '@/api/admin'; // 导入获取用户列表、更新用户和删除用户的 API 函数
+import { getAllUsers, updateUser as updateUserAPI, deleteUser as deleteUserAPI } from '@/api/admin'; // 导入获取用户列表、更新用户和删除用户的 API 函数
 
 export const useAdminStore = defineStore('admin', {
   state: () => ({
@@ -32,7 +32,7 @@ export const useAdminStore = defineStore('admin', {
       this.loadingUserAction = true;
       this.userActionError = null; // 重置错误信息
       try {
-        const response = await updateUser(userId, userData);
+        const response = await updateUserAPI(userId, userData);
         // TODO: 根据实际后端响应结构调整数据更新方式
         // 假设后端返回更新后的用户对象在 response.data 中
         const updatedUser = response.data;
@@ -56,7 +56,7 @@ export const useAdminStore = defineStore('admin', {
       this.userActionError = null;
       try {
         // 调用删除 API
-        await deleteUser(userId);
+        await deleteUserAPI(userId);
         // 从用户列表中移除已删除的用户
         this.users = this.users.filter(user => user.id !== userId);
       } catch (error) {

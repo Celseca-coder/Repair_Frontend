@@ -17,7 +17,7 @@
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button-group>
-              <el-button size="small" type="primary" @click="handleEdit(row)">编辑</el-button>
+              <el-button size="small" type="primary" @click="handleEdit(row)" :loading="submitting">编辑</el-button>
               <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
             </el-button-group>
           </template>
@@ -35,6 +35,7 @@
       <el-form
         ref="formRef"
         :model="form"
+        :rules="rules"
         label-width="80px"
       >
         <el-form-item label="用户名" prop="username">
@@ -55,8 +56,8 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
+          <el-button @click="dialogVisible = false" :disabled="submitting">取消</el-button>
+          <el-button type="primary" @click="handleSubmit" :loading="submitting">确定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -65,17 +66,19 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getUsers } from '@/api/admin'
+import { getUsers, updateUser } from '@/api/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const users = ref([])
 const loading = ref(false)
+const submitting = ref(false)
 const dialogVisible = ref(false)
 const dialogType = ref('edit')
 const formRef = ref(null)
 const form = ref({
   id: null,
   username: '',
+  userType: 'User',
   profile: {
     id: null,
     phone: '',
@@ -84,6 +87,27 @@ const form = ref({
     address: ''
   }
 })
+
+// 表单验证规则
+const rules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' }
+  ],
+  'profile.name': [
+    { required: true, message: '请输入姓名', trigger: 'blur' }
+  ],
+  'profile.phone': [
+    { required: true, message: '请输入电话', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ],
+  'profile.email': [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+  ],
+  'profile.address': [
+    { required: true, message: '请输入地址', trigger: 'blur' }
+  ]
+}
 
 const fetchUsers = async () => {
   try {
@@ -125,11 +149,54 @@ const handleDelete = async (row) => {
   }
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!formRef.value) return
-  ElMessage.success(`用户 "${form.value.username}" ${dialogType.value === 'edit' ? '编辑' : '新增'}成功 (模拟操作)。`)
-  dialogVisible.value = false
-  fetchUsers()
+  
+  try {
+    // 表单验证
+    await formRef.value.validate()
+    
+    submitting.value = true
+    
+    // 准备发送给API的数据，确保格式符合接口要求
+    const userData = {
+      id: form.value.id,
+      username: form.value.username,
+      userType: form.value.userType || 'User',
+      profile: {
+        phone: form.value.profile.phone,
+        name: form.value.profile.name,
+        email: form.value.profile.email,
+        address: form.value.profile.address
+      }
+    }
+    
+    // 调用API更新用户信息
+    const response = await updateUser(form.value.id, userData)
+    
+    if (response.data) {
+      ElMessage.success('用户信息更新成功')
+      dialogVisible.value = false
+      // 重新获取用户列表以显示最新数据
+      await fetchUsers()
+    } else {
+      ElMessage.error('更新失败：未收到有效响应')
+    }
+  } catch (error) {
+    console.error('更新用户信息失败:', error)
+    if (error.response) {
+      // 服务器返回错误响应
+      ElMessage.error(`更新失败：${error.response.data?.message || error.response.statusText}`)
+    } else if (error.request) {
+      // 网络错误
+      ElMessage.error('网络错误，请检查网络连接')
+    } else {
+      // 其他错误
+      ElMessage.error(error.message || '更新用户信息失败')
+    }
+  } finally {
+    submitting.value = false
+  }
 }
 
 onMounted(() => {
